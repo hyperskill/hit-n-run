@@ -7,14 +7,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-public class B_ObstaclesTest
+public class C_ObstaclesTest
 {
     private InputSimulator IS = new InputSimulator();
     private GameObject player;
     private List<Vector3> firstPos = new List<Vector3>();
     private List<Vector3> secondPos = new List<Vector3>();
 
-    public B_ObstaclesTest()
+    public C_ObstaclesTest()
     {
         SceneManager.LoadScene("Game");
         Time.timeScale = 40;
