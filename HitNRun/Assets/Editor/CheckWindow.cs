@@ -14,16 +14,23 @@ public class CheckWindow : EditorWindow
         GetWindow<CheckWindow>("Check");
     }
     
-    void OnEnable()
+    void createStyles()
     {
-        red = new GUIStyle(EditorStyles.label);
-        red.normal.textColor = Color.red;
- 
-        green = new GUIStyle(EditorStyles.label);
-        green.normal.textColor = Color.green;
+        if (red == null)
+        {
+            red = new GUIStyle(EditorStyles.label);
+            red.normal.textColor = Color.red;
+        }
+
+        if (green == null)
+        {
+            green = new GUIStyle(EditorStyles.label);
+            green.normal.textColor = Color.green;
+        }
     }
     private void OnGUI()
     {
+        createStyles();
         GUILayout.Label("Press here to run tests:");
         if (GUILayout.Button("Check",GUILayout.Width(100)))
         {
