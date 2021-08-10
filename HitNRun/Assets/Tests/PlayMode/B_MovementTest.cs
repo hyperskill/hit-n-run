@@ -7,12 +7,12 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Random = UnityEngine.Random;
 
-public class A_MovementCheck
+public class B_MovementTest
 {
     private InputSimulator IS = new InputSimulator();
     public GameObject player;
 
-    public A_MovementCheck()
+    public B_MovementTest()
     {
         Time.timeScale = 40;
     }
