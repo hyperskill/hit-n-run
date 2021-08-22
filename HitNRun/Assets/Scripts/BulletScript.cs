@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class BulletScript : MonoBehaviour
 {
-    public float speed = 4f;
+    public float speed = 6f;
     
     // Start is called before the first frame update
     void Start()
@@ -37,7 +37,7 @@ public class BulletScript : MonoBehaviour
         }
         else
         {
-            Debug.Log($"Collision with: {other.gameObject.tag}");
+            //Debug.Log($"Collision with: {other.gameObject.tag}");
         }
     }
 

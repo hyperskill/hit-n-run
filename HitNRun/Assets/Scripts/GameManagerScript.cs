@@ -9,11 +9,13 @@ public class GameManagerScript : MonoBehaviour
 {
     public GameObject myPrefab;
     public GameObject enemyPrefab;
+    private float difficultyTracker = 1.0f;
     
     // Start is called before the first frame update
     void Start()
     {
         StartCoroutine(EnemyGenerator());
+        StartCoroutine(DifficultyIncrementer());
         
         const int numBlobs = 35;
         
@@ -112,9 +114,22 @@ public class GameManagerScript : MonoBehaviour
 
             //Camera.main.ViewportToWorldPoint(new Vector3(1, 1, 0));
             newEnemy.transform.position = new Vector2(horPos, verticalPos);
-            Debug.Log($"({horPos}, {verticalPos})\n");
+            //Debug.Log($"({horPos}, {verticalPos})\n");
+            newEnemy.GetComponent<EnemyScript>().diff = difficultyTracker;
             yield return new WaitForSeconds(2);
         }
+        
+    }
+
+    IEnumerator DifficultyIncrementer()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5);
+            difficultyTracker += 1f;
+            Debug.Log($"Difficulty increased to: {difficultyTracker}");
+        }
+        
         
     }
 }
