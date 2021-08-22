@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerControl : MonoBehaviour
 {
     private float baseSpeed = 3.0f;
+    public GameObject bulletPrefab;
     
     // Start is called before the first frame update
     void Start()
@@ -27,7 +28,13 @@ public class PlayerControl : MonoBehaviour
         Vector2 direction = (mousePos - (Vector2) transform.position).normalized;
         
         transform.right = -direction;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            GameObject newBullet = Instantiate(bulletPrefab);
+            newBullet.transform.right = direction;
+            newBullet.transform.position = this.transform.position + transform.right * -1f;
+        }
     }
-    
     
 }
