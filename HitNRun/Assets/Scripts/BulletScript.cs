@@ -32,6 +32,8 @@ public class BulletScript : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Enemy"))
         {
+            float diffLevel = other.gameObject.GetComponent<EnemyScript>().diff;
+            GameObject.FindGameObjectWithTag("GameController").GetComponent<GameManagerScript>().score += 100 + 50 * diffLevel;
             GameObject.Destroy(other.gameObject);
             GameObject.Destroy(this.gameObject);
         }

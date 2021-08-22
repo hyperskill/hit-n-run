@@ -10,6 +10,7 @@ public class GameManagerScript : MonoBehaviour
     public GameObject myPrefab;
     public GameObject enemyPrefab;
     private float difficultyTracker = 1.0f;
+    public float score = 0;
     
     // Start is called before the first frame update
     void Start()
