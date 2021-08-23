@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.iOS;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 public class GameManagerScript : MonoBehaviour
@@ -34,7 +35,18 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene("Game");
+        }
+        else if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            SceneManager.LoadScene("Main Menu");
+        }
+        else if (Input.GetKeyDown(KeyCode.F1))
+        {
+            PlayerPrefs.DeleteKey("highScore");
+        }
     }
     
     IEnumerator EnemyGenerator()
