@@ -10,12 +10,14 @@ public class GameManager : MonoBehaviour
 {
     public GameObject myPrefab;
     public GameObject enemyPrefab;
+    private float difficultyTracker = 1.0f;
     
     // Start is called before the first frame update
     void Start()
     {
         
         StartCoroutine(EnemyGenerator());
+        StartCoroutine(DifficultyIncrementer());
         
         const int numBlobs = 15;
         
@@ -26,11 +28,7 @@ public class GameManager : MonoBehaviour
             newBlob.transform.localScale = new Vector3(radius * 2, radius * 2, 0);
             newBlob.transform.position = new Vector2(Random.Range(-16f, 16f), Random.Range(-9f, 9f));
         }
-
-        
-
     }
-
     // Update is called once per frame
     void Update()
     {
@@ -112,12 +110,20 @@ public class GameManager : MonoBehaviour
                         .ViewportToWorldPoint(new Vector3(1.05f, 0, 0))
                         .x;
             }
-
-            //Camera.main.ViewportToWorldPoint(new Vector3(1, 1, 0));
             newEnemy.transform.position = new Vector2(horPos, verticalPos);
+            newEnemy.GetComponent<EnemyControl>().diff = difficultyTracker;
             yield return new WaitForSeconds(2.1f);
-            //Thread.Sleep(TimeSpan.FromSeconds(2));
         }
+        
+    }
+    IEnumerator DifficultyIncrementer()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(2);
+            difficultyTracker += 1f;
+        }
+        
         
     }
     

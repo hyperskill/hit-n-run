@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class BulletControl : MonoBehaviour
 {
-    public float speed = 4f;
+    public float speed = 7f;
     
     // Start is called before the first frame update
     void Start()
@@ -34,10 +34,6 @@ public class BulletControl : MonoBehaviour
         {
             GameObject.Destroy(other.gameObject);
             GameObject.Destroy(this.gameObject);
-        }
-        else
-        {
-            Debug.Log($"Collision with: {other.gameObject.tag}");
         }
     }
 
