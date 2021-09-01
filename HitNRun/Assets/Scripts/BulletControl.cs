@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BulletControl : MonoBehaviour
 {
     public float speed = 7f;
+    public int point=1;
     
     // Start is called before the first frame update
     void Start()
@@ -34,6 +36,9 @@ public class BulletControl : MonoBehaviour
         {
             GameObject.Destroy(other.gameObject);
             GameObject.Destroy(this.gameObject);
+            var text = GameObject.Find("Score");
+            point = GameObject.Find("GameManager").GetComponent<GameManager>().points;
+            text.GetComponent<Text>().text = (Convert.ToInt32(text.GetComponent<Text>().text) + point).ToString();
         }
     }
 

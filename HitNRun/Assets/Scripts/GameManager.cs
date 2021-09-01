@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     public GameObject myPrefab;
     public GameObject enemyPrefab;
     private float difficultyTracker = 1.0f;
+    public int points = 1;
     
     // Start is called before the first frame update
     void Start()
@@ -19,9 +20,9 @@ public class GameManager : MonoBehaviour
         StartCoroutine(EnemyGenerator());
         StartCoroutine(DifficultyIncrementer());
         
-        const int numBlobs = 15;
+        const int numObstacles = 15;
         
-        for (int i = 0; i < numBlobs; i++)
+        for (int i = 0; i < numObstacles; i++)
         {
             GameObject newBlob = Instantiate(myPrefab);
             float radius = Random.Range(1f, 2f);
@@ -122,6 +123,7 @@ public class GameManager : MonoBehaviour
         {
             yield return new WaitForSeconds(2);
             difficultyTracker += 1f;
+            points += 1;
         }
         
         
