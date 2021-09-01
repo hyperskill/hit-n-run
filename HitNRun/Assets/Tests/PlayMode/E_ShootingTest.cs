@@ -50,6 +50,7 @@ public class E_ShootingTest
 
         IS.Mouse.MoveMouseTo(Convert.ToDouble(x), Convert.ToDouble(y));
         IS.Mouse.LeftButtonClick();
+        
         yield return new WaitForSeconds(0.5f);
         GameObject tmp = GameObject.FindWithTag("Shot");
         Assert.NotNull(tmp, "Bullet is not been spawned, or it's tag is misspelled!");

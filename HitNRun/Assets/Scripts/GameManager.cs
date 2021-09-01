@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
         
         StartCoroutine(EnemyGenerator());
         
-        const int numBlobs = 50;
+        const int numBlobs = 15;
         
         for (int i = 0; i < numBlobs; i++)
         {
