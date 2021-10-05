@@ -52,6 +52,7 @@ public class D_EnemiesTest
             yield return new WaitForSeconds(2);
             yield return null;
             GameObject[] tmp2 = GameObject.FindGameObjectsWithTag("Enemy");
+            Debug.Log("Enemies: " + tmp2.Length + " j: " + j);
             yield return null;
             if (tmp2.Length != j)
             {
