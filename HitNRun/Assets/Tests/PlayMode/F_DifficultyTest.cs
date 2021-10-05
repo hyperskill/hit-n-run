@@ -35,8 +35,8 @@ public class F_DifficultyTest
         endPos = tmp.transform.position;
         GameObject.Destroy(tmp);
         distanceFirst = Vector3.Distance(startPos,endPos);
-        
         yield return new WaitForSeconds(1f);
+        
         
         for (int i = 0; i < 5; i++)
         {
@@ -48,6 +48,7 @@ public class F_DifficultyTest
         yield return null;
         tmp = GameObject.FindWithTag("Enemy");
         second = tmp.GetComponent<SpriteRenderer>().color;
+        second = first - second;
         startPos = tmp.transform.position;
         yield return new WaitForSeconds(1f);
         endPos = tmp.transform.position;
