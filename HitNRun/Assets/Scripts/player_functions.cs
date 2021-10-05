@@ -9,10 +9,11 @@ public class player_functions : MonoBehaviour
 {
     // Start is called before the first frame update
     float speed = 12;
-    private GameObject shotgun;
+    private Transform firePoint;
+    public GameObject fire;
     void Start()
     {
-        shotgun = GameObject.Find("Shotgun");
+        firePoint = GameObject.Find("FirePoint").transform;
     }
 
     // Update is called once per frame
@@ -20,6 +21,11 @@ public class player_functions : MonoBehaviour
     {
         move();
         rotate();
+        
+        if (Input.GetMouseButtonDown(0))
+        {
+            shoot();
+        }
     }
 
     void rotate()
@@ -97,5 +103,10 @@ public class player_functions : MonoBehaviour
             Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y,
                 Camera.main.transform.position.z);
         }
+    }
+
+    void shoot()
+    {
+        Instantiate(fire, firePoint.position, firePoint.rotation);
     }
 }

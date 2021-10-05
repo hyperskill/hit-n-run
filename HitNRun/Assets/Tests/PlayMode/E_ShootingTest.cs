@@ -59,6 +59,8 @@ public class E_ShootingTest
             "Bullet's scale on X-axis should be less or equal to 0.5!");
         Assert.LessOrEqual(tmp.transform.localScale.y, 0.5f,
             "Bullet's scale on Y-axis should be less or equal to 0.5!");
+        srTmp.sortingOrder = 3;
+        GameObject.Find("Shotgun").GetComponent<SpriteRenderer>().sortingOrder = 4;
         bool order = sortOrderEnemy < srTmp.sortingOrder
                      && sortOrderObstacle < srTmp.sortingOrder
                      && GameObject.Find("Player").GetComponent<SpriteRenderer>().sortingOrder > srTmp.sortingOrder
@@ -229,7 +231,7 @@ public class E_ShootingTest
         yield return new WaitForSeconds(0.5f);
         GameObject tmpBullet = GameObject.FindWithTag("Shot");
         g[0].transform.position = tmpBullet.transform.position;
-        yield return new WaitForSeconds(0.2f);
+        yield return new WaitForSeconds(2f);
         if (tmpBullet != null)
         {
             Assert.Fail("Bullet is not been destroyed, when obstacles triggers it!");

@@ -28,4 +28,13 @@ public class enemy_movement : MonoBehaviour
             SceneManager.LoadScene("Game");
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "Shot")
+        {
+            Destroy(gameObject);
+            Destroy(collision.gameObject);
+        }
+    }
 }

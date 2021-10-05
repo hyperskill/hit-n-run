@@ -180,15 +180,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6532254982295200445, guid: 484bc5e59f768fa4eb376d771c1a9073, type: 3}
       propertyPath: m_SortingOrder
-      value: 3
+      value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 6532254982295200447, guid: 484bc5e59f768fa4eb376d771c1a9073, type: 3}
+      propertyPath: fire
+      value: 
+      objectReference: {fileID: 8201968581053484860, guid: 97de66cf91c36f14cb51c1ae137df27c, type: 3}
     - target: {fileID: 6532254983224606275, guid: 484bc5e59f768fa4eb376d771c1a9073, type: 3}
       propertyPath: m_TagString
-      value: Shot
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 6532254983224606333, guid: 484bc5e59f768fa4eb376d771c1a9073, type: 3}
       propertyPath: m_SortingOrder
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 484bc5e59f768fa4eb376d771c1a9073, type: 3}
