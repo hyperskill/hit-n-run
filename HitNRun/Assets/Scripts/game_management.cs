@@ -11,6 +11,7 @@ public class game_management : MonoBehaviour
     public GameObject obstacle;
     public GameObject enemy;
     private static float speed = 5f;
+    private static int score = 200;
     void Start()
     {
         createObstaclesRandomly();
@@ -61,6 +62,7 @@ public class game_management : MonoBehaviour
             if (counter == 4)
             {
                 speed *= 1.4f;
+                score += 400;
                 counter = 0;
             }
             yield return new WaitForSeconds(2);
@@ -70,5 +72,10 @@ public class game_management : MonoBehaviour
     public static float getSpeed()
     {
         return speed;
+    }
+
+    public static int getScoreIncrease()
+    {
+        return score;
     }
 }
