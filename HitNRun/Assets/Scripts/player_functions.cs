@@ -36,8 +36,14 @@ public class player_functions : MonoBehaviour
         {
             float movement = Input.GetAxis("Horizontal") * speed;
             movement *= Time.deltaTime;
+            Vector3 position = transform.position;
             Vector3 newPosition = new Vector3(movement, 0, 0);
-            transform.position += newPosition;
+            
+            if ((position.x += newPosition.x) > -24)
+            {
+                transform.position += newPosition;
+            }
+            
 
             Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y,
                 Camera.main.transform.position.z);
@@ -47,8 +53,13 @@ public class player_functions : MonoBehaviour
         {
             float movement = Input.GetAxis("Horizontal") * speed;
             movement *= Time.deltaTime;
+            Vector3 position = transform.position;
             Vector3 newPosition = new Vector3(movement, 0, 0);
-            transform.position += newPosition;
+            
+            if ((position.x += newPosition.x) < 24)
+            {
+                transform.position += newPosition;
+            }
 
             Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y,
                 Camera.main.transform.position.z);
@@ -58,8 +69,13 @@ public class player_functions : MonoBehaviour
         {
             float movement = Input.GetAxis("Vertical") * speed;
             movement *= Time.deltaTime;
+            Vector3 position = transform.position;
             Vector3 newPosition = new Vector3(0, movement, 0);
-            transform.position += newPosition;
+            
+            if ((position.y += newPosition.y) < 24)
+            {
+                transform.position += newPosition;
+            }
 
             Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y,
                 Camera.main.transform.position.z);
@@ -69,8 +85,13 @@ public class player_functions : MonoBehaviour
         {
             float movement = Input.GetAxis("Vertical") * speed;
             movement *= Time.deltaTime;
+            Vector3 position = transform.position;
             Vector3 newPosition = new Vector3(0, movement, 0);
-            transform.position += newPosition;
+            
+            if ((position.y += newPosition.y) > -24)
+            {
+                transform.position += newPosition;
+            }
 
             Camera.main.transform.position = new Vector3(transform.position.x, transform.position.y,
                 Camera.main.transform.position.z);
