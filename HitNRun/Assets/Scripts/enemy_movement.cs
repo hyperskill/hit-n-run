@@ -42,6 +42,10 @@ public class enemy_movement : MonoBehaviour
         {
             int score = game_management.getScoreIncrease();
             score = Int32.Parse(scoreText.text) + score;
+            if (score > PlayerPrefs.GetInt("highscore"))
+            {
+                PlayerPrefs.SetInt("highscore", score);
+            }
             scoreText.text = score.ToString();
             Destroy(gameObject);
             Destroy(collision.gameObject);

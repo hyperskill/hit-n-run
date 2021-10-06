@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Graphs;
 using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Scene = UnityEngine.SceneManagement.Scene;
 
 public class game_management : MonoBehaviour
@@ -21,7 +22,15 @@ public class game_management : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKey(KeyCode.R))
+        {
+            SceneManager.LoadScene("Game");
+        }
+
+        if (Input.GetKey(KeyCode.Tab))
+        {
+            SceneManager.LoadScene("Main Menu");
+        }
     }
 
     void createObstaclesRandomly()

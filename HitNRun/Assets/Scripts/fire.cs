@@ -7,7 +7,7 @@ using UnityEngine;
 public class fire : MonoBehaviour
 {
     // Start is called before the first frame update
-    float speed = 100f;
+    float speed = 20f;
     public Rigidbody2D rb;
     void Start()
     {
