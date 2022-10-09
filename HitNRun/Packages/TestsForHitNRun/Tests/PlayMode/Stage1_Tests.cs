@@ -5,11 +5,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-public class A_ObjectsTest
+[Description("Gear up! We're going in!"),Category("1")]
+public class Stage1_Tests
 {
     private GameObject player, shotgun;
     private GameObject camera;
     private Camera cameraComp;
+    private bool exist;
     private SpriteRenderer playerSR, shotgunSR;
     
     [UnityTest, Order(1)]
@@ -26,15 +28,13 @@ public class A_ObjectsTest
         yield return null;
         SceneManager.LoadScene("Game");
         yield return null;
-        
-        player = PMHelper.Exist("Player");
-        shotgun = PMHelper.Exist("Shotgun");
-        
-        if (!player)
+        (player, exist) = PMHelper.Exist("Player");
+        if (!exist)
         {
             Assert.Fail("There is no object \"Player\" in scene, or it is misspelled");
         }
-        if (!shotgun)
+        (shotgun, exist) = PMHelper.Exist("Shotgun");
+        if (!exist)
         {
             Assert.Fail("There is no object \"Shotgun\" in scene, or it is misspelled");
         }
@@ -54,7 +54,7 @@ public class A_ObjectsTest
     public IEnumerator CameraExists()
     {
         yield return null;
-        camera = PMHelper.Exist("Main Camera");
+        (camera, exist) = PMHelper.Exist("Main Camera");
         
         if (!camera)
         {
@@ -103,16 +103,16 @@ public class A_ObjectsTest
     {
         yield return null;
 
-        if (!PMHelper.CheckColorDifference(playerSR.color, shotgunSR.color))
+        if (!PMHelper.CheckColorDifference(playerSR.color, shotgunSR.color,0.3f))
         {
             Assert.Fail("The difference of colors between \"Player\" and \"Shotgun\" should be visible!");
         }
-        if (!PMHelper.CheckColorDifference(playerSR.color, cameraComp.backgroundColor))
+        if (!PMHelper.CheckColorDifference(playerSR.color, cameraComp.backgroundColor,0.3f))
         {
             Assert.Fail("The difference of colors between \"Player\" and \"Camera\"'s background" +
                         "should be visible!");
         }
-        if (!PMHelper.CheckColorDifference(shotgunSR.color, cameraComp.backgroundColor))
+        if (!PMHelper.CheckColorDifference(shotgunSR.color, cameraComp.backgroundColor,0.3f))
         {
             Assert.Fail("The difference of colors between \"Shotgun\" and \"Camera\"'s background" +
                         "should be visible!");
