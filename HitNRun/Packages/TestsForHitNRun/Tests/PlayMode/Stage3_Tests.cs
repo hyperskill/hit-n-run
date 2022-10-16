@@ -7,56 +7,38 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-[Description("We're in the clear."),Category("3")]
+[Description("We're in the clear."), Category("3")]
 public class Stage3_Tests
 {
     private GameObject player;
-    private bool exist;
-    private List<Vector3> firstPos = new List<Vector3>();
-    private List<Vector3> secondPos = new List<Vector3>();
-    private GameObject helperObj;
+    private List<Collider2D> borderColls = new List<Collider2D>();
 
     [UnityTest]
     public IEnumerator Check()
     {
-        SceneManager.LoadScene("Game");
-        Time.timeScale = 40;
-        yield return null;
-        
-        //Check tag and layer existance
-        bool ObstacleTagExist = false;
-        bool BorderTagExist = false;
-        SerializedObject tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
-        SerializedProperty tagsProp = tagManager.FindProperty("tags");
-        for (int i = 0; i < tagsProp.arraySize; i++)
+        Time.timeScale = 15;
+        if (!Application.CanStreamedLevelBeLoaded("Game"))
         {
-            SerializedProperty t = tagsProp.GetArrayElementAtIndex(i);
-            if (t.stringValue.Equals("Obstacle")) { ObstacleTagExist = true; }
-            if (t.stringValue.Equals("Border")) { BorderTagExist = true; }
+            Assert.Fail("\"Game\" scene is misspelled or was not added to build settings");
         }
 
-        if (!BorderTagExist)
+        PMHelper.TurnCollisions(false);
+        SceneManager.LoadScene("Game");
+
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            SceneManager.GetActiveScene().name == "Game" || (Time.unscaledTime - start) * Time.timeScale > 1);
+        if (SceneManager.GetActiveScene().name != "Game")
         {
-            Assert.Fail("Border tag was not added to project");
+            Assert.Fail("\"Game\" scene can't be loaded");
         }
-        
-        if (!ObstacleTagExist)
+
+        //Check tag existance
+
+        if (!PMHelper.CheckTagExistance("Border"))
         {
-            Assert.Fail("Obstacle tag was not added to project");
+            Assert.Fail("\"Border\" tag was not added to project");
         }
-        int layer = LayerMask.NameToLayer("Test");
-        if (layer < 0)
-        {
-            Assert.Fail("Please, do not remove \"Test\" layer, it's existance necessary for tests");
-        }
-        
-        //Removing obstacles
-        helperObj = new GameObject();
-        yield return null;
-        StageHelper helper = helperObj.AddComponent<StageHelper>();
-        helper.destroyEnemies = true;
-        yield return null;
-        helper.RemoveObstacles();
 
         //Check if there are borders
         GameObject[] borders = GameObject.FindGameObjectsWithTag("Border");
@@ -73,10 +55,12 @@ public class Stage3_Tests
             {
                 Assert.Fail("There is no <SpriteRenderer> component on \"Border\" object or it is disabled!");
             }
+
             if (!srBorder.sprite)
             {
                 Assert.Fail("There is no sprite assigned to \"Border\"'s <SpriteRenderer>!");
             }
+
             if (!coll)
             {
                 Assert.Fail("Each \"Border\" object should have assigned <Collider2D> component");
@@ -86,17 +70,18 @@ public class Stage3_Tests
             {
                 Assert.Fail("Each \"Border\" object's <Collider2D> component should not be triggerable");
             }
-            b.layer=LayerMask.NameToLayer("Test");
+
+            borderColls.Add(coll);
+            b.layer = LayerMask.NameToLayer("Test");
         }
 
-        yield return null;
-        (player, exist) = PMHelper.Exist("Player");
-        Transform playerT=PMHelper.Exist<Transform>(player);
-        yield return null;
+        player = GameObject.Find("Player");
+        Transform playerT = PMHelper.Exist<Transform>(player);
+
         int N = 36;
         for (int i = 0; i < N; i++)
         {
-            playerT.Rotate(0,0,360/N);
+            playerT.Rotate(0, 0, 360 / N);
             if (!PMHelper.RaycastFront2D(playerT.position, playerT.up,
                 1 << LayerMask.NameToLayer("Test")).collider)
             {
@@ -105,18 +90,18 @@ public class Stage3_Tests
         }
 
         //Check player's components
-        Collider2D playerColl=PMHelper.Exist<Collider2D>(player);
-        Rigidbody2D playerRb=PMHelper.Exist<Rigidbody2D>(player);
-        yield return null;
+        Collider2D playerColl = PMHelper.Exist<Collider2D>(player);
         if (!playerColl)
         {
             Assert.Fail("Player should have assigned <Collider2D> component");
         }
+
         if (playerColl.isTrigger)
         {
             Assert.Fail("Player's <Collider2D> component should not be triggerable");
         }
 
+        Rigidbody2D playerRb = PMHelper.Exist<Rigidbody2D>(player);
         if (!playerRb)
         {
             Assert.Fail("Player should have assigned <Rigidbody2D> component");
@@ -126,217 +111,185 @@ public class Stage3_Tests
         {
             Assert.Fail("Player's <Rigidbody2D> component should be Dynamic");
         }
+
         if (!playerRb.simulated)
         {
             Assert.Fail("Player's <Rigidbody2D> component should be simulated");
         }
-        if (playerRb.gravityScale!=0)
+
+        if (playerRb.gravityScale != 0)
         {
             Assert.Fail("Player's <Rigidbody2D> component should not be affected by gravity, " +
                         "so it's Gravity Scale parameter should be equal to 0");
         }
+
         if (playerRb.interpolation != RigidbodyInterpolation2D.None)
         {
             Assert.Fail("Do not change interpolation of Player's <Rigidbody2D> component. Set it as None");
         }
+
         if (playerRb.constraints != RigidbodyConstraints2D.None)
         {
             Assert.Fail("Do not freeze any Player's <Rigidbody2D> component's constraints");
         }
+
         //Check movement with freezed rigidbody
-        Vector3 start = playerT.position;
+        Vector3 startP = playerT.position;
         playerRb.constraints = RigidbodyConstraints2D.FreezeAll;
-        Vector3 bef,now;
-        
-        bef=playerT.position;
-        VInput.KeyPress(KeyCode.W);
-        yield return null;
-        VInput.KeyPress(KeyCode.A);
-        yield return null;
-        now = playerT.position;
-        if (bef != now)
+
+        KeyCode[] ways = {KeyCode.A, KeyCode.D, KeyCode.S, KeyCode.W};
+        foreach (KeyCode w in ways)
         {
-            Assert.Fail("Player's movement was not reimplemented with <Rigidbody2D> component usage");
-        }
-        
-        playerRb.constraints = RigidbodyConstraints2D.None;
-        
-        //Check FixedUpdate() method usage        
-        bef=playerT.position;
-        VInput.KeyDown(KeyCode.W);
-        yield return null;
-        for (int i = 0; i < 10; i++)
-        {
-            yield return new WaitForFixedUpdate();
-            now = playerT.position;
-            if (now.y.Equals(bef.y))
+            VInput.KeyDown(w);
+            start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                playerT.position != startP || (Time.unscaledTime - start) * Time.timeScale > 2);
+            if (playerT.position != startP)
             {
-                Assert.Fail("Use FixedUpdate() event for player's physics simulation");
+                Assert.Fail("Player's movement should be reimplemented with <Rigidbody2D> component usage");
             }
-            bef=now;
+
+            VInput.KeyUp(w);
         }
-        VInput.KeyUp(KeyCode.W);
+
+        playerRb.constraints = RigidbodyConstraints2D.None;
+
+        //Check FixedUpdate() method usage        
+        Vector3 bef = playerT.position;
+        foreach (KeyCode w in ways)
+        {
+            VInput.KeyDown(w);
+            start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                playerT.position != bef || (Time.unscaledTime - start) * Time.timeScale > 2);
+
+            for (int i = 0; i < 10; i++)
+            {
+                bef = playerT.position;
+                yield return new WaitForFixedUpdate();
+                if (bef.Equals(playerT.position))
+                {
+                    Assert.Fail("Use FixedUpdate() event for player's physics simulation");
+                }
+            }
+
+            VInput.KeyUp(w);
+        }
+
+        bool Collides(Collider2D m, List<Collider2D> list)
+        {
+            return m.IsTouching(list[0]) ||
+                   m.IsTouching(list[1]) ||
+                   m.IsTouching(list[2]) ||
+                   m.IsTouching(list[3]);
+        }
 
         //Check bounds
-        float left, right, up, down;
-        
-        playerT.position = start;
-        PMHelper.TurnCollisions(true);
-        yield return null;
-        
-        VInput.KeyDown(KeyCode.A);
-        yield return new WaitForSeconds(10);
-        Vector3 first = playerT.position;
-        yield return null;
-        Vector3 second = playerT.position;
-        VInput.KeyUp(KeyCode.A);
-        yield return null;
-        if (first.x != second.x)
+        int basicPlayerLayer = player.layer;
+        player.layer = LayerMask.NameToLayer("Test");
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Test"), LayerMask.NameToLayer("Test"), false);
+        playerT.position = startP;
+        foreach (KeyCode w in ways)
         {
-            Assert.Fail("There are no bounds of field for the player, or they are placed too far" +
-                        "(Player should be able to reach each border from it's start position in less than 5 seconds;)");
-        }
-        left = playerT.position.x;
+            start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                !Collides(playerColl, borderColls) || (Time.unscaledTime - start) * Time.timeScale > 1);
 
-        playerT.position = start;
-        
-        VInput.KeyDown(KeyCode.W);
-        yield return new WaitForSeconds(5);
-        first = playerT.position;
-        yield return null;
-        second = playerT.position;
-        VInput.KeyUp(KeyCode.W);
-        yield return null;
-        if (first.y != second.y)
-        {
-            Assert.Fail("There are no bounds of field for the player, or they are placed too far" +
-                        "(Player should be able to reach each border from it's start position in less than 5 seconds;)");
-        }
-        up = player.transform.position.y;
-        playerT.position = start;
-        
-        VInput.KeyDown(KeyCode.S);
-        yield return new WaitForSeconds(5);
-        first = playerT.position;
-        yield return null;
-        second = playerT.position;
-        VInput.KeyUp(KeyCode.S);
-        yield return null;
-        if (first.y != second.y)
-        {
-            Assert.Fail("There are no bounds of field for the player, or they are placed too far" +
-                        "(Player should be able to reach each border from it's start position in less than 5 seconds;)");
-        }
-        down = player.transform.position.y;
-        playerT.position = start;
-        
-        VInput.KeyDown(KeyCode.D);
-        yield return new WaitForSeconds(5);
-        first = playerT.position;
-        yield return null;
-        second = playerT.position;
-        VInput.KeyUp(KeyCode.D);
-        yield return null;
-        if (first.x != second.x)
-        {
-            Assert.Fail("There are no bounds of field for the player, or they are placed too far" +
-                        "(Player should be able to reach each border from it's start position in less than 5 seconds;)");
-        }
-        right = player.transform.position.x;
-
-        float fieldSize = (up - down) * (right - left);
-        
-        //Checking obstacles
-        
-        PMHelper.TurnCollisions(false);
-        
-        yield return null;
-        SceneManager.LoadScene("Game");
-        yield return null;
-        yield return null;
-        
-        float obstacleSizeSum = 0;
-        Color playerColor = GameObject.Find("Player").GetComponent<SpriteRenderer>().color;
-        Color shotgunColor = GameObject.Find("Shotgun").GetComponent<SpriteRenderer>().color;
-        Color backColor = GameObject.Find("Main Camera").GetComponent<Camera>().backgroundColor;
-        
-        GameObject exampleObstacle = GameObject.FindWithTag("Obstacle");
-        if (!exampleObstacle)
-        {
-            Assert.Fail("Obstacles are not been spawned or their tag is misspelled!");
-        }
-
-        SpriteRenderer sr = PMHelper.Exist<SpriteRenderer>(exampleObstacle);
-        if (!sr || !sr.enabled)
-        {
-            Assert.Fail("There is no <SpriteRenderer> component on \"Obstacle\" object or it is disabled!");
-        }
-        if (!sr.sprite)
-        {
-            Assert.Fail("There is no sprite assigned to \"Obstacle\"'s <SpriteRenderer>!");
-        }
-        Color obstacleColor = sr.color;
-        
-        if (!PMHelper.CheckColorDifference(playerColor, obstacleColor, 0.3f))
-        {
-            Assert.Fail("The difference of colors between \"Player\" and obstacles should be visible!");
-        }
-        if (!PMHelper.CheckColorDifference(shotgunColor, obstacleColor, 0.3f))
-        {
-            Assert.Fail("The difference of colors between \"Shotgun\" and obstacles should be visible!");
-        }
-        if (!PMHelper.CheckColorDifference(backColor, obstacleColor, 0.3f))
-        {
-            Assert.Fail("The difference of colors between background and obstacles should be visible!");
-        }
-
-        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Obstacle"))
-        {
-            Transform gT = PMHelper.Exist<Transform>(g);
-            if (!PMHelper.CheckObjectFits2D(gT, new Vector2(left, up), new Vector2(right, down)))
+            if (Collides(playerColl, borderColls))
             {
-                Assert.Fail("Obstacles should be created inside limiting zone");
+                Assert.Fail("Player object should not be placed right next to bounds");
             }
-            firstPos.Add(gT.position);
-            obstacleSizeSum += gT.localScale.x*gT.localScale.y;
-            Collider2D coll = PMHelper.Exist<Collider2D>(g);
+
+            VInput.KeyDown(w);
+            start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                Collides(playerColl, borderColls) || (Time.unscaledTime - start) * Time.timeScale > 6);
+
+            if (!Collides(playerColl, borderColls))
+            {
+                Assert.Fail("There are no bounds of field for the player, or they are placed too far" +
+                            " (Player should be able to reach each border from it's start position in less than 5 seconds)");
+            }
+
+            VInput.KeyUp(w);
+
+            playerT.position = startP;
+        }
+
+        player.layer = basicPlayerLayer;
+        PMHelper.TurnCollisions(false);
+
+        //Checking obstacles
+
+        if (!PMHelper.CheckTagExistance("Obstacle"))
+        {
+            Assert.Fail("\"Obstacle\" tag was not added to project");
+        }
+
+        GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
+        if (obstacles.Length != 5)
+        {
+            Assert.Fail("There should be at least 5 obstacles with \"Obstacle\" tag");
+        }
+
+        playerT.position = startP;
+        float left = PMHelper.RaycastFront2D(playerT.position, Vector2.left,
+            1 << LayerMask.NameToLayer("Test")).point.x;
+        float right = PMHelper.RaycastFront2D(playerT.position, Vector2.right,
+            1 << LayerMask.NameToLayer("Test")).point.x;
+        float up = PMHelper.RaycastFront2D(playerT.position, Vector2.up,
+            1 << LayerMask.NameToLayer("Test")).point.y;
+        float down = PMHelper.RaycastFront2D(playerT.position, Vector2.down,
+            1 << LayerMask.NameToLayer("Test")).point.y;
+
+        foreach (GameObject o in obstacles)
+        {
+            SpriteRenderer sr = PMHelper.Exist<SpriteRenderer>(o);
+            if (!sr || !sr.enabled)
+            {
+                Assert.Fail("There is no <SpriteRenderer> component on \"Obstacle\" object or it is disabled!");
+            }
+
+            if (!sr.sprite)
+            {
+                Assert.Fail("There is no sprite assigned to \"Obstacle\"'s <SpriteRenderer>!");
+            }
+
+            Color playerColor = GameObject.Find("Player").GetComponent<SpriteRenderer>().color;
+            Color shotgunColor = GameObject.Find("Shotgun").GetComponent<SpriteRenderer>().color;
+            Color backColor = GameObject.Find("Main Camera").GetComponent<Camera>().backgroundColor;
+            Color obstacleColor = sr.color;
+
+            if (!PMHelper.CheckColorDifference(playerColor, obstacleColor, 0.3f))
+            {
+                Assert.Fail("The difference of colors between \"Player\" and obstacles should be visible!");
+            }
+
+            if (!PMHelper.CheckColorDifference(shotgunColor, obstacleColor, 0.3f))
+            {
+                Assert.Fail("The difference of colors between \"Shotgun\" and obstacles should be visible!");
+            }
+
+            if (!PMHelper.CheckColorDifference(backColor, obstacleColor, 0.3f))
+            {
+                Assert.Fail("The difference of colors between background and obstacles should be visible!");
+            }
+
+            Transform oT = PMHelper.Exist<Transform>(o);
+            if (!PMHelper.CheckObjectFits2D(oT, new Vector2(left, up), new Vector2(right, down)))
+            {
+                Assert.Fail("Obstacles should be inside limiting zone");
+            }
+
+            Collider2D coll = PMHelper.Exist<Collider2D>(o);
             if (!coll)
             {
                 Assert.Fail("Obstacles should have assigned <Collider2D> component");
             }
+
             if (coll.isTrigger)
             {
                 Assert.Fail("Obstacles' <Collider2D> component should not be triggerable");
-            }
-        }
-
-        if (obstacleSizeSum > fieldSize / 2f)
-        {
-            Assert.Fail("Obstacles should not take more than a half of field. In your solution it is "
-                        +(int)((obstacleSizeSum/fieldSize)*10000f)/10000f);
-        }
-        if (obstacleSizeSum < fieldSize / 10f)
-        {
-            Assert.Fail("Obstacles should not take less than a 1/10 of field. In your solution it is "
-                        +(int)((obstacleSizeSum/fieldSize)*10000f)/10000f);
-        }
-
-        SceneManager.LoadScene("Game");
-        yield return null;
-        yield return null;
-        foreach (GameObject g in GameObject.FindGameObjectsWithTag("Obstacle"))
-        {
-            secondPos.Add(g.transform.position);
-        }
-
-        for (int i = 0; i < firstPos.Count; i++)
-        {
-            for (int j = 0; j < secondPos.Count; j++)
-            {
-                if (firstPos[i] == secondPos[j])
-                {
-                    Assert.Fail("Obstacles should be spawned randomly!");
-                }
             }
         }
     }

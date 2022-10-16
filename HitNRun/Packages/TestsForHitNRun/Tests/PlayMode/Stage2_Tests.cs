@@ -1,50 +1,58 @@
 using System;
 using System.Collections;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Random = UnityEngine.Random;
 
-[Description("Come on, come on. Chop-chop!"),Category("2")]
+[Description("Come on, come on. Chop-chop!"), Category("2")]
 public class Stage2_Tests
 {
     public GameObject player;
-    private bool exist;
-    public StageHelper helper;
     public Camera camera;
     public GameObject cameraObj;
 
     [UnityTest, Order(1)]
     public IEnumerator SetUp()
     {
-        Time.timeScale = 40;
-        yield return null;
+        Time.timeScale = 15;
+        if (!Application.CanStreamedLevelBeLoaded("Game"))
+        {
+            Assert.Fail("\"Game\" scene is misspelled or was not added to build settings");
+        }
+
+        PMHelper.TurnCollisions(false);
         SceneManager.LoadScene("Game");
-        yield return null;
-        
-        player=GameObject.Find("Player");
-        
-        GameObject helperObject = new GameObject("Helper");
-        yield return null;
-        helper=helperObject.AddComponent<StageHelper>();
-        helper.destroyEnemies = true;
-        yield return new WaitForSeconds(0.5f);
-        
-        helper.RemoveObstacles();
-        
+
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            SceneManager.GetActiveScene().name == "Game" || (Time.unscaledTime - start) * Time.timeScale > 1);
+        if (SceneManager.GetActiveScene().name != "Game")
+        {
+            Assert.Fail("\"Game\" scene can't be loaded");
+        }
+
+        player = GameObject.Find("Player");
     }
+
     [UnityTest, Order(2)]
     public IEnumerator CheckLeftMovement()
     {
-        yield return null;
         Vector3 startpos = player.transform.position;
-        
+
         VInput.KeyDown(KeyCode.A);
-        yield return new WaitForSeconds(1);
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            player.transform.position != startpos || (Time.unscaledTime - start) * Time.timeScale > 2);
+        if (player.transform.position == startpos)
+        {
+            Assert.Fail("By pressing \"A\"-key, player should move to the left, x-axis should decrease");
+        }
+
         VInput.KeyUp(KeyCode.A);
-        yield return null;
-        
+
         Vector3 endpos = player.transform.position;
         if (endpos.x >= startpos.x)
         {
@@ -53,20 +61,26 @@ public class Stage2_Tests
 
         if (endpos.y != startpos.y || endpos.z != startpos.z)
         {
-            Assert.Fail("By moving left y-axis or z-axis should not change");
+            Assert.Fail("By moving left (\"A\"-key) y-axis or z-axis should not change");
         }
     }
+
     [UnityTest, Order(3)]
     public IEnumerator CheckRightMovement()
     {
-        yield return null;
         Vector3 startpos = player.transform.position;
-        
+
         VInput.KeyDown(KeyCode.D);
-        yield return new WaitForSeconds(1);
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            player.transform.position != startpos || (Time.unscaledTime - start) * Time.timeScale > 2);
+        if (player.transform.position == startpos)
+        {
+            Assert.Fail("By pressing \"D\"-key, player should move to the right, x-axis should increase");
+        }
+
         VInput.KeyUp(KeyCode.D);
-        yield return null;
-        
+
         Vector3 endpos = player.transform.position;
         if (endpos.x <= startpos.x)
         {
@@ -75,20 +89,26 @@ public class Stage2_Tests
 
         if (endpos.y != startpos.y || endpos.z != startpos.z)
         {
-            Assert.Fail("By moving right y-axis or z-axis should not change");
+            Assert.Fail("By moving left (\"D\"-key) y-axis or z-axis should not change");
         }
     }
+
     [UnityTest, Order(4)]
     public IEnumerator CheckDownMovement()
     {
-        yield return null;
         Vector3 startpos = player.transform.position;
-        
+
         VInput.KeyDown(KeyCode.S);
-        yield return new WaitForSeconds(1);
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            player.transform.position != startpos || (Time.unscaledTime - start) * Time.timeScale > 2);
+        if (player.transform.position == startpos)
+        {
+            Assert.Fail("By pressing \"S\"-key, player should move down, y-axis should decrease");
+        }
+
         VInput.KeyUp(KeyCode.S);
-        yield return null;
-        
+
         Vector3 endpos = player.transform.position;
         if (endpos.y >= startpos.y)
         {
@@ -100,17 +120,24 @@ public class Stage2_Tests
             Assert.Fail("By moving down x-axis or z-axis should not change");
         }
     }
+
     [UnityTest, Order(5)]
     public IEnumerator CheckUpMovement()
     {
         yield return null;
         Vector3 startpos = player.transform.position;
-        
+
         VInput.KeyDown(KeyCode.W);
-        yield return new WaitForSeconds(1);
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            player.transform.position != startpos || (Time.unscaledTime - start) * Time.timeScale > 2);
+        if (player.transform.position == startpos)
+        {
+            Assert.Fail("By pressing \"W\"-key, player should move up, y-axis should increase");
+        }
+
         VInput.KeyUp(KeyCode.W);
-        yield return null;
-        
+
         Vector3 endpos = player.transform.position;
         if (endpos.y <= startpos.y)
         {
@@ -122,79 +149,70 @@ public class Stage2_Tests
             Assert.Fail("By moving up x-axis or z-axis should not change");
         }
     }
-    
-    [UnityTest, Order(7)]
-    public IEnumerator LookingTest()
-    {
-        yield return null;
-        player = GameObject.Find("Player");
-        GameObject shotgun = GameObject.Find("Shotgun");
-        (cameraObj, exist) = PMHelper.Exist("Main Camera");
-        camera = PMHelper.Exist<Camera>(cameraObj);
-        
-        for (int i = 0; i < 10; i++)
-        {
-            yield return new WaitForSeconds(1);
-            float x = Random.Range(0, Screen.width);
-            float y = Random.Range(0, Screen.height);
-            x *= 65535 / Screen.width;
-            y *= 65535 / Screen.height;
-            VInput.MoveMouseTo(Convert.ToDouble(x), Convert.ToDouble(y));
-            yield return null;
-            
-            Vector2 mouse = camera.ScreenToWorldPoint(Input.mousePosition);
-            float startDist = Vector2.Distance(shotgun.transform.position, mouse);
-            player.transform.Rotate(Vector3.forward,10);
-            float endDist1 = Vector2.Distance(shotgun.transform.position, mouse);
-            player.transform.Rotate(Vector3.forward,-20);
-            float endDist2 = Vector2.Distance(shotgun.transform.position, mouse);
-            if (startDist >= endDist1 || startDist >= endDist2)
-            {
-                Assert.Fail("Player rotation is not working properly, it's shotgun should be facing the mouse cursor directly");
-            }
-        }
-    }
 
     [UnityTest, Order(6)]
     public IEnumerator CameraFollowCheck()
     {
         player = GameObject.Find("Player");
-        (cameraObj, exist) = PMHelper.Exist("Main Camera");
+        cameraObj = GameObject.Find("Main Camera");
         camera = PMHelper.Exist<Camera>(cameraObj);
-        
-        VInput.KeyDown(KeyCode.A);
-        yield return new WaitForSeconds(10);
-        VInput.KeyUp(KeyCode.A);
-        yield return null;
-        
-        if (!PMHelper.CheckVisibility(camera, player.transform, 2))
+        KeyCode[] ways = {KeyCode.A, KeyCode.D, KeyCode.S, KeyCode.W};
+        foreach (KeyCode w in ways)
         {
-            Assert.Fail("Camera should follow the \"Player\" object");
+            VInput.KeyDown(w);
+            float start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                !PMHelper.CheckVisibility(camera, player.transform, 2) ||
+                (Time.unscaledTime - start) * Time.timeScale > 5);
+            if (!PMHelper.CheckVisibility(camera, player.transform, 2))
+            {
+                Assert.Fail("Camera should follow the \"Player\" object");
+            }
+
+            VInput.KeyUp(w);
         }
-        VInput.KeyDown(KeyCode.D);
-        yield return new WaitForSeconds(10);
-        VInput.KeyUp(KeyCode.D);
+    }
+
+    [UnityTest, Order(7)]
+    public IEnumerator LookingTest()
+    {
         yield return null;
-        if (!PMHelper.CheckVisibility(camera, player.transform, 2))
+        player = GameObject.Find("Player");
+        Transform shotgunT = GameObject.Find("Shotgun").GetComponent<Transform>();
+        cameraObj = GameObject.Find("Main Camera");
+        camera = PMHelper.Exist<Camera>(cameraObj);
+        Vector2 baseMouse = Input.mousePosition;
+
+        EditorWindow game = null;
+        double X, Y;
+        for (int i = 0; i < 10; i++)
         {
-            Assert.Fail("Camera should follow the \"Player\" object");
+            (game, X, Y) = PMHelper.GetCoordinatesOnGameWindow(Random.Range(0f, 1f), Random.Range(0f, 1f));
+            VInput.MoveMouseTo(X, Y);
+            float start = Time.unscaledTime;
+            yield return new WaitUntil(() =>
+                !baseMouse.Equals(Input.mousePosition) || (Time.unscaledTime - start) * Time.timeScale > 2);
+            if (baseMouse.Equals(Input.mousePosition))
+            {
+                Assert.Fail(
+                    "Player rotation is not working properly, it's shotgun should be facing the mouse cursor directly");
+            }
+
+            Vector2 mouse = camera.ScreenToWorldPoint(Input.mousePosition);
+            float startDist = Vector2.Distance(shotgunT.position, mouse);
+            player.transform.Rotate(Vector3.forward, 10);
+            float endDist1 = Vector2.Distance(shotgunT.position, mouse);
+            player.transform.Rotate(Vector3.forward, -20);
+            float endDist2 = Vector2.Distance(shotgunT.position, mouse);
+            if (startDist >= endDist1 || startDist >= endDist2)
+            {
+                Assert.Fail(
+                    "Player rotation is not working properly, it's shotgun should be facing the mouse cursor directly");
+            }
+
+            baseMouse = Input.mousePosition;
         }
-        VInput.KeyDown(KeyCode.S);
-        yield return new WaitForSeconds(10);
-        VInput.KeyUp(KeyCode.S);
-        yield return null;
-        if (!PMHelper.CheckVisibility(camera, player.transform, 2))
-        {
-            Assert.Fail("Camera should follow the \"Player\" object");
-        }
-        VInput.KeyDown(KeyCode.W);
-        yield return new WaitForSeconds(10);
-        VInput.KeyUp(KeyCode.W);
-        yield return null;
-        if (!PMHelper.CheckVisibility(camera, player.transform, 2))
-        {
-            Assert.Fail("Camera should follow the \"Player\" object");
-        }
-        yield return null;
+
+        game.maximized = false;
     }
 }

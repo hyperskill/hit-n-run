@@ -4,92 +4,108 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
 
-[Description("Remember! This is bandit country."),Category("6")]
+[Description("Remember! This is bandit country."), Category("6")]
 public class Stage6_Tests
 {
     [UnityTest, Order(0)]
     public IEnumerator SetUp()
     {
+        Time.timeScale = 15;
+        if (!Application.CanStreamedLevelBeLoaded("Game"))
+        {
+            Assert.Fail("\"Game\" scene is misspelled or was not added to build settings");
+        }
+
         PMHelper.TurnCollisions(false);
-        Time.timeScale = 0;
         SceneManager.LoadScene("Game");
-        yield return null;
+
+        float start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            SceneManager.GetActiveScene().name == "Game" || (Time.unscaledTime - start) * Time.timeScale > 1);
+        if (SceneManager.GetActiveScene().name != "Game")
+        {
+            Assert.Fail("\"Game\" scene can't be loaded");
+        }
     }
+
     [UnityTest, Order(1)]
     public IEnumerator CheckSpeedAndColorIncrease()
     {
-        
-        GameObject helper = new GameObject("helper");
-        StageHelper helperComp = helper.AddComponent<StageHelper>();
-
-        yield return null;
-        helperComp.RemoveObstacles();
-        yield return null;
-        
         GameObject firstEnemy = GameObject.FindWithTag("Enemy");
-        yield return null;
-        
         Transform firstEnemyT = firstEnemy.transform;
-        SpriteRenderer firstEnemySR = PMHelper.Exist<SpriteRenderer>(firstEnemy);
-        yield return null;
-        
-        Color first = firstEnemySR.color;
+        Vector3 point = firstEnemyT.position;
+        Color first = PMHelper.Exist<SpriteRenderer>(firstEnemy).color;
 
         GameObject player = GameObject.Find("Player");
         Transform playerT = player.transform;
-        yield return null;
-        
-        Time.timeScale = 10;
-        float firstStart = Time.unscaledTime;
-        yield return new WaitUntil(() =>
-            Vector2.Distance(firstEnemyT.position,playerT.position)<0.01f || (Time.unscaledTime - firstStart) * Time.timeScale > 20);
-        if ((Time.unscaledTime - firstStart) * Time.timeScale >= 20)
-        {
-            Assert.Fail("Enemies are not moving to a player");
-        }
-        float firstEnd = Time.unscaledTime;
-        helperComp.destroyEnemies=true;
+
         float start = Time.unscaledTime;
         yield return new WaitUntil(() =>
+            Vector2.Distance(firstEnemyT.position, playerT.position) < 0.01f ||
             (Time.unscaledTime - start) * Time.timeScale > 20);
-        
-        helperComp.destroyEnemies=false;
-        if (GameObject.FindWithTag("Enemy"))
+        if (Vector2.Distance(firstEnemyT.position, playerT.position) >= 0.01f)
         {
-            GameObject.Destroy(GameObject.FindWithTag("Enemy"));
+            Assert.Fail("Enemies are not moving to a player, or moving too slow");
         }
-        
+
+        float firstTime = Time.unscaledTime - start;
+
         start = Time.unscaledTime;
         yield return new WaitUntil(() =>
-            GameObject.FindWithTag("Enemy") || (Time.unscaledTime - start) * Time.timeScale > 20);
-        if ((Time.unscaledTime - start) * Time.timeScale >= 20)
+            GameObject.FindGameObjectsWithTag("Enemy").Length == 10 ||
+            (Time.unscaledTime - start) * Time.timeScale > 30);
+        if (GameObject.FindGameObjectsWithTag("Enemy").Length != 10)
         {
-            Assert.Fail();
+            Assert.Fail("Enemies not spawning each 2 seconds");
         }
 
-        GameObject secondEnemy = GameObject.FindWithTag("Enemy");
-        yield return null;
-        
-        Transform secondEnemyT = secondEnemy.transform;
-        SpriteRenderer secondEnemySR = PMHelper.Exist<SpriteRenderer>(secondEnemy);
-        yield return null;
-        
-        Color second = secondEnemySR.color;
+        foreach (var en in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            GameObject.Destroy(en);
+        }
 
-        float secondStart = Time.unscaledTime;
+        start = Time.unscaledTime;
         yield return new WaitUntil(() =>
-            Vector2.Distance(secondEnemyT.position,playerT.position)<0.01f || (Time.unscaledTime - secondStart) * Time.timeScale > 20);
-        if ((Time.unscaledTime - secondStart) * Time.timeScale >= 20)
+            !GameObject.FindWithTag("Enemy") || (Time.unscaledTime - start) * Time.timeScale > 1);
+        if (GameObject.FindWithTag("Enemy"))
         {
-            Assert.Fail("Enemies are not moving to a player");
+            Assert.Fail("Unexpected bug :(");
         }
-        float secondEnd = Time.unscaledTime;
-        
+
+        start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            GameObject.FindWithTag("Enemy") || (Time.unscaledTime - start) * Time.timeScale > 3);
+        GameObject secondEnemy = GameObject.FindWithTag("Enemy");
+        if (!secondEnemy)
+        {
+            Assert.Fail("Enemies not spawning each 2 seconds");
+        }
+
+        Transform secondEnemyT = secondEnemy.transform;
+        Color second = PMHelper.Exist<SpriteRenderer>(secondEnemy).color;
+
+        secondEnemyT.position = point;
+        start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            secondEnemyT.position == point || (Time.unscaledTime - start) * Time.timeScale > 1);
+
+        start = Time.unscaledTime;
+        yield return new WaitUntil(() =>
+            Vector2.Distance(secondEnemyT.position, playerT.position) < 0.01f ||
+            (Time.unscaledTime - start) * Time.timeScale > 20);
+        if (Vector2.Distance(secondEnemyT.position, playerT.position) >= 0.01f)
+        {
+            Assert.Fail("Enemies are not moving to a player, or moving too slow");
+        }
+
+        float secondTime = Time.unscaledTime - start;
+
         if (first == second)
         {
             Assert.Fail("After 20+ seconds of game-time, color of new enemies didn't change");
         }
-        if (secondEnd - secondStart >= firstEnd - firstStart)
+
+        if (secondTime >= firstTime)
         {
             Assert.Fail("After 20+ seconds of game-time, speed of new enemies didn't increase");
         }
