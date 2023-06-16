@@ -227,7 +227,7 @@ public class Stage3_Tests
         }
 
         GameObject[] obstacles = GameObject.FindGameObjectsWithTag("Obstacle");
-        if (obstacles.Length <= 5)
+        if (obstacles.Length < 5)
         {
             Assert.Fail("There should be at least 5 obstacles with \"Obstacle\" tag");
         }
